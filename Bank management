@@ -1,0 +1,154 @@
+//Main Class
+
+package com.wipro.bank.main;
+
+import java.util.Scanner;
+
+import com.wipro.bank.service.BankService;
+
+public class MainClass {
+
+	public static void main(String[] args)  {
+		Scanner sc=new Scanner(System.in);
+		System.out.println("Enter tenure ");
+		int tenure=sc.nextInt();
+		System.out.println("Enter Principle ");
+		float principal=sc.nextFloat();
+		System.out.println("Enter age ");
+		int age=sc.nextInt();
+		System.out.println("Enter gender");
+		String gender=sc.next();
+		gender=gender.toLowerCase();
+		BankService b=new BankService();
+		b.calculate(principal, tenure, age, gender);
+
+	}
+
+}
+
+
+//Bank Service Class
+
+package com.wipro.bank.service;
+
+import com.wipro.bank.acc.RDAccount;
+import com.wipro.bank.exception.BankValidationException;
+
+public class BankService {
+	public void calculate(float principal,int tenure, int age, String gender)
+	{
+		if(validateData(principal,tenure,age,gender))
+		{
+		RDAccount r=new RDAccount(tenure, principal);
+		r.setInterest(age, gender);
+		System.out.println(r.calculateInterest());
+		System.out.println(r.calculateAmountDeposited());
+		System.out.println(r.calculateMaturityAmount(tenure*4*principal,r.calculateInterest()));
+		}
+	}
+	public boolean validateData(float principal, int tenure,int age, String gender) 
+	{
+		try
+		{
+		if(principal>=500&&(tenure==5||tenure==10)&&(gender.equals("male")||gender.equals("female"))&&(age>=1&&age<=100))
+		{
+			return true;
+		}
+		else
+		{
+			BankValidationException o=new BankValidationException();
+			System.out.println(o.toString());
+		}
+		}
+		catch(Exception e)
+		{
+			return false;
+		}
+		return false;
+	}
+
+}
+
+
+//Bank Validation Exception Class
+
+package com.wipro.bank.exception;
+
+public class BankValidationException {
+	public String toString()
+	{
+		return "Invalid Data";
+	}
+
+}
+
+
+//Account Class
+
+package com.wipro.bank.acc;
+public abstract class Account {
+	int tenure;
+	float principal;
+	float rateOfInterest;
+
+	public void setInterest(int age, String gender)
+	{
+		if(gender.equals("male")&&age<60)
+		{
+			rateOfInterest=(float) 9.8;
+		}
+		else if(gender.equals("male")&&age>=60)
+		{
+			rateOfInterest=(float)10.5;
+		}
+		else if(gender.equals("female")&&age<58)
+		{
+			rateOfInterest=(float)10.2;
+		}
+		else if(gender.equals("female")&&age>=58)
+		{
+			rateOfInterest=(float)10.8;
+		}
+	}
+	public float calculateMaturityAmount(float totalPrincipleDeposited,float maturityInterest)
+	{
+		return totalPrincipleDeposited+maturityInterest;
+	}
+	public abstract float calculateInterest();
+	public abstract float calculateAmountDeposited();
+
+	
+
+
+}
+
+
+//RDA Account
+
+package com.wipro.bank.acc;
+
+public class RDAccount extends Account{
+	public RDAccount(int tenure, float principal)
+	{
+		this.tenure=tenure;
+		this.principal=principal;
+	}
+	public float calculateAmountDeposited()
+	{
+		return principal*tenure*12;
+	}
+	public float calculateInterest() {
+		float r=rateOfInterest/100;
+		float n=4;
+		float x=1+r/n;
+		int rem=tenure*12;
+		float sum=0;
+		for(float i=rem;i>=0;i--)
+		{
+			float t=i/12;
+			sum=(float)(sum+(principal*(Math.pow(x,n*t)-1)));
+		}
+		return sum;
+}
+
+}
